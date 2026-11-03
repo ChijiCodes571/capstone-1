@@ -64,7 +64,7 @@ public class UserInterface {
                 //Display only the negative entries(or payments)
             }
             else if (reply.equals("R")) {
-                // A new screen that allows the user to run pre-defined reports or to run a custom search
+                displayReport();
             }
             else if (reply.equals("H")) {
                 //go back to the home page
@@ -77,6 +77,55 @@ public class UserInterface {
 
     }
 
+    // Report screen
+
+    public static void displayReport () {
+
+        int num = -1;
+
+        do{
+            System.out.println("""
+                    Enter a number of your choice: 
+                    Month to Date (1)
+                    Previous Month (2)
+                    Year to Date (3)
+                    Previous Year (4)
+                    Search by Vendor (5)
+                    Back (0)
+                    """);
+
+            String input = scanner.nextLine().trim();
+            try{
+                num = Integer.parseInt(input);
+            }
+            catch (NumberFormatException e) {
+                System.out.println("Invalid number");
+                continue;
+            }
+
+            if(num == 1){
+                //
+            }
+            else if ( num == 2){
+                //
+            }
+            else if ( num == 3){
+                //
+            }
+            else if ( num == 4){
+
+            }
+            else if ( num == 5){
+
+            }
+            else if ( num == 0){
+
+            }
+            else {
+                System.out.println("Invalid number");
+            }
+        }while(num != 0);
+    }
 
 
 
