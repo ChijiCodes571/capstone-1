@@ -1,5 +1,7 @@
 package com.pluralsight;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class UserInterface {
@@ -37,7 +39,7 @@ public class UserInterface {
 
     }
 
-    // Method for edger screen
+    // Method for ledger screen
 
     public static void displayLedgerMenu () {
 
@@ -50,24 +52,25 @@ public class UserInterface {
                     Deposits (D)
                     Payments (P)
                     Reports (R)
+                    go back to home page(H)
                     """);
 
             reply = scanner.nextLine().toUpperCase();
 
             if(reply.equals("A")){
-                // Display all entries
+                readTransaction("A");
             }
             else if (reply.equals("D")) {
-                //Display only the entries that are deposit into the account
+                readTransaction("D");
             }
             else if (reply.equals("P")) {
-                //Display only the negative entries(or payments)
+                readTransaction("P");
             }
             else if (reply.equals("R")) {
                 displayReport();
             }
             else if (reply.equals("H")) {
-                //go back to the home page
+                System.out.println("go back to the home page");
             }
             else{
                 System.out.println("Invalid Reply");
@@ -104,27 +107,84 @@ public class UserInterface {
             }
 
             if(num == 1){
-                //
+                System.out.println("Displaying Months to Date");
             }
             else if ( num == 2){
-                //
+                System.out.println("Displaying Previous Month");
             }
             else if ( num == 3){
-                //
+                System.out.println("Displaying Year to Date");
             }
             else if ( num == 4){
-
+                System.out.println("Displaying Previous Year...");
             }
             else if ( num == 5){
-
+                System.out.println("Search by Vendor...");
             }
             else if ( num == 0){
-
+                //Return to Ledger
             }
             else {
                 System.out.println("Invalid number");
             }
         }while(num != 0);
+    }
+
+    // Transaction CSV
+
+    public static void readTransaction (String type) {
+        File file = new File("transactions.csv");
+
+        try{
+            Scanner fileScanner = new Scanner(file);
+
+            while(fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+
+                if(line.startsWith("date")){
+                    continue;
+                }
+                String[] transactionDate = line.split("\\|");
+
+                if(transactionDate.length < 5) {
+                    System.out.println("Invalid transaction row. Skipping...");
+                    continue;
+                }
+
+                Transaction transaction = new Transaction(
+                        transactionDate[0],
+                        transactionDate[1],
+                        transactionDate[2],
+                        transactionDate[3],
+                        transactionDate[4]
+                );
+
+                double amount;
+                try{
+                    amount = Double.parseDouble(transaction.getAmount());
+                }
+                catch (NumberFormatException e) {
+                    System.out.println("Invalid transaction amount. Skipping...");
+                    continue;
+                }
+
+
+                if(type.equals("A")) {
+                    transaction.display();
+                }
+                else if (type.equals("D") && amount > 0){
+                    transaction.display();
+                }
+                else if (type.equals("P") && amount < 0) {
+                   transaction.display();
+                }
+            }
+
+            fileScanner.close();
+
+        }catch (FileNotFoundException e){
+            System.out.println(("file not found"));
+        }
     }
 
 
