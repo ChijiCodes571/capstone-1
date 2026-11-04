@@ -19,22 +19,13 @@ public class Transaction {
         this.amount = amount;
     }
 
-        // toString method
-
-        @Override
-        public String toString() {
-            return "Transaction{" +
-                    "date='" + date + '\'' +
-                    ", time='" + time + '\'' +
-                    ", description='" + description + '\'' +
-                    ", vendor='" + vendor + '\'' +
-                    ", amount='" + amount + '\'' +
-                    '}';
 
 
 
 
-        }
+
+
+
 
 
 
