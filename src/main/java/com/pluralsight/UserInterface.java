@@ -2,6 +2,9 @@ package com.pluralsight;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class UserInterface {
@@ -24,10 +27,10 @@ public class UserInterface {
             response = scanner.nextLine().toUpperCase();
 
             if (response.equals("D")) {
-                System.out.println("Add your deposit information: ");
+                addTransaction("D");
 
             } else if (response.equals("P")) {
-                System.out.println("Add debit information");
+                addTransaction("P");
             } else if (response.equals("L")) {
                 displayLedgerMenu();
             } else if (response.equals("X")) {
@@ -137,6 +140,7 @@ public class UserInterface {
 
         try{
             Scanner fileScanner = new Scanner(file);
+            ArrayList<Transaction> transactions = new ArrayList<>();
 
             while(fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
@@ -170,21 +174,143 @@ public class UserInterface {
 
 
                 if(type.equals("A")) {
-                    transaction.display();
+                    transactions.add(transaction);
                 }
                 else if (type.equals("D") && amount > 0){
-                    transaction.display();
+                    transactions.add(transaction);
                 }
                 else if (type.equals("P") && amount < 0) {
-                   transaction.display();
+                   transactions.add(transaction);
                 }
-            }
 
+            }
+            for (int i = 0; i < transactions.size(); i++) {
+                for (int j = i + 1; j < transactions.size(); j++) {
+                    Transaction first = transactions.get(i);
+                    Transaction second = transactions.get(j);
+
+                    String firstYear = first.getDate().substring(0,4);
+                    String secondYear = second.getDate().substring(0,4);
+
+                    String firstMonth = first.getDate().substring(5,7);
+                    String secondMonth = second.getDate().substring(5,7);
+
+                    String firstDay = first.getDate().substring(8,10);
+                    String secondDay = second.getDate().substring(8,10);
+
+                    int year1 = Integer.parseInt(firstYear);
+                    int year2 = Integer.parseInt(secondYear);
+
+                    int month1 = Integer.parseInt(firstMonth);
+                    int month2 = Integer.parseInt(secondMonth);
+
+                    int day1 = Integer.parseInt(firstDay);
+                    int day2 = Integer.parseInt(secondDay);
+
+                    boolean itSwaps = false;
+
+                    if(year1 < year2){
+                        itSwaps = true;
+                    }
+
+                    else if (year1 == year2 && month1 < month2){
+                        itSwaps = true;
+                    }
+                    else if (year1 == year2 && month1 == month2 && day1 < day2){
+                        itSwaps = true;
+                    }
+
+                    if(itSwaps) {
+                        Transaction temp = first;
+                        first = second;
+                        second = temp;
+
+                        transactions.set(i, first);
+                        transactions.set(j, second);
+                    }
+                }
+
+            }
+            for(Transaction transaction : transactions){
+                transaction.display();
+            }
             fileScanner.close();
+
 
         }catch (FileNotFoundException e){
             System.out.println(("file not found"));
         }
+    }
+
+    //Adding Transaction
+
+    public static void addTransaction(String type) {
+
+        System.out.print("Enter time: ");
+        String time = scanner.nextLine();
+
+        System.out.print("Enter description: ");
+        String description = scanner.nextLine();
+
+        System.out.print("Enter name of vendor: ");
+        String vendor = scanner.nextLine();
+
+        boolean validDateFormat = false;
+        String date = "";
+
+        while (!validDateFormat) {
+            System.out.println("Enter date: ");
+            date = scanner.nextLine();
+
+            if (date.length() == 10 &&
+                    date.substring(4, 5).equals("-") &&
+                    date.substring(7, 8).equals("-")) {
+
+                validDateFormat = true;
+
+            } else {
+                System.out.println("Invalid date. Use yyyy-MM-dd.");
+            }
+        }
+
+        double amount = 0;
+        boolean correctAmount = false;
+
+        while(!correctAmount){
+            System.out.println("Enter amount: ");
+
+            try{
+                amount = Double.parseDouble(scanner.nextLine());
+                if (amount == 0){
+                    System.out.println("Amount cannot be zero.");
+                }
+                else{
+                    correctAmount = true;
+                }
+            } catch (NumberFormatException e){
+                System.out.println("Please enter a valid number.");
+            }
+        }
+
+        if(type.equals("P")){
+            amount = amount * -1;
+        }
+
+
+        File file = new File("transactions.csv");
+
+        try {
+            FileWriter writer = new FileWriter(file, true);
+            writer.write (date + "|" + time + "|" + description + "|" + vendor + "|" + amount + "\n");
+
+            writer.close();
+
+            System.out.println("Transaction has been saved sucessfully");
+        } catch (IOException e){
+            System.out.println("There was an error writing file.");
+        }
+
+
     }
 
 
