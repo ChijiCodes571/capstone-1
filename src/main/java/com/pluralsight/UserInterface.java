@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -87,6 +88,8 @@ public class UserInterface {
 
     public static void displayReport () {
 
+        LocalDate today = LocalDate.now();
+
         int num = -1;
 
         do{
@@ -110,19 +113,19 @@ public class UserInterface {
             }
 
             if(num == 1){
-                System.out.println("Displaying Months to Date");
+                readReport(1);
             }
             else if ( num == 2){
-                System.out.println("Displaying Previous Month");
+                readReport(2);
             }
             else if ( num == 3){
-                System.out.println("Displaying Year to Date");
+                readReport(3);
             }
             else if ( num == 4){
-                System.out.println("Displaying Previous Year...");
+                readReport(4);
             }
             else if ( num == 5){
-                System.out.println("Search by Vendor...");
+                readReport(5);
             }
             else if ( num == 0){
                 //Return to Ledger
@@ -246,15 +249,6 @@ public class UserInterface {
 
     public static void addTransaction(String type) {
 
-        System.out.print("Enter time: ");
-        String time = scanner.nextLine();
-
-        System.out.print("Enter description: ");
-        String description = scanner.nextLine();
-
-        System.out.print("Enter name of vendor: ");
-        String vendor = scanner.nextLine();
-
         boolean validDateFormat = false;
         String date = "";
 
@@ -266,12 +260,41 @@ public class UserInterface {
                     date.substring(4, 5).equals("-") &&
                     date.substring(7, 8).equals("-")) {
 
-                validDateFormat = true;
+                String year = date.substring(0, 4);
+                String month = date.substring(5, 7);
+                String day = date.substring(8, 10);
+
+              try {
+                  int yearValue = Integer.parseInt(year);
+                  int monthValue = Integer.parseInt(month);
+                  int dayValue = Integer.parseInt(day);
+
+                  if (yearValue > 0 &&
+                          monthValue >= 1 && monthValue <= 12 &&
+                          dayValue >= 1 && dayValue <= 31) {
+
+                      validDateFormat = true;
+
+                  } else {
+                      System.out.println("Invalid date. Try again.");
+                  }
+              } catch(NumberFormatException e) {
+                  System.out.println("Date must contain numbers. Try again");
+              }
 
             } else {
                 System.out.println("Invalid date. Use yyyy-MM-dd.");
             }
         }
+
+        System.out.print("Enter time: ");
+        String time = scanner.nextLine();
+
+        System.out.print("Enter description: ");
+        String description = scanner.nextLine();
+
+        System.out.print("Enter name of vendor: ");
+        String vendor = scanner.nextLine();
 
         double amount = 0;
         boolean correctAmount = false;
@@ -292,7 +315,10 @@ public class UserInterface {
             }
         }
 
-        if(type.equals("P")){
+        if(type.equals("P") && amount > 0){
+            amount = amount * -1;
+        }
+        else if (type.equals("D") && amount < 0){
             amount = amount * -1;
         }
 
@@ -311,6 +337,105 @@ public class UserInterface {
         }
 
 
+    }
+
+      //read report
+
+    public static void readReport(int choiceReport) {
+
+        LocalDate today = LocalDate.now();
+
+        int currentYear = today.getYear();
+        int currentMonth = today.getMonthValue();
+
+        int previousMonth = currentMonth - 1;
+        int previousMonthYear = currentYear;
+
+        if (currentMonth == 1) {
+            previousMonth = 12;
+            previousMonthYear = currentYear - 1;
+        }
+
+        File file = new File("transactions.csv");
+
+        try {
+            Scanner fileScanner = new Scanner(file);
+
+            boolean transactionFound = false;
+
+            String searchVendor = "";
+
+            if (choiceReport == 5) {
+                System.out.print("Enter vendor name: ");
+                searchVendor = scanner.nextLine().trim();
+            }
+
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+
+                if (line.startsWith("date")) {
+                    continue;
+                }
+
+                String[] transactionData = line.split("\\|");
+
+                if (transactionData.length < 5) {
+                    continue;
+                }
+
+                String date = transactionData[0];
+
+                if (date.length() != 10) {
+                    continue;
+                }
+
+                // Extract year and month from transaction date
+
+                int transactionYear = Integer.parseInt(date.substring(0, 4));
+                int transactionMonth = Integer.parseInt(date.substring(5, 7));
+
+                // Month to Date condition
+
+                if (choiceReport == 1 &&
+                        transactionYear == currentYear &&
+                        transactionMonth == currentMonth) {
+                    transactionFound = true;
+                    System.out.println(line);
+                }
+                else if (choiceReport == 2 &&
+                        transactionYear == previousMonthYear &&
+                        transactionMonth == previousMonth) {
+
+                    transactionFound = true;
+                    System.out.println(line);
+                }
+                else if(choiceReport == 3 && transactionYear == currentYear ){
+                    transactionFound = true;
+                    System.out.println(line);
+                }
+                else if (choiceReport == 4 &&
+                        transactionYear == currentYear - 1) {
+
+                    transactionFound = true;
+                    System.out.println(line);
+                }
+                else if (choiceReport == 5 &&
+                        transactionData[3].equalsIgnoreCase(searchVendor)) {
+
+                    transactionFound = true;
+                    System.out.println(line);
+                }
+            }
+
+            if (!transactionFound){
+                System.out.println("No transaction was found");
+            }
+
+            fileScanner.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found.");
+        }
     }
 
 
